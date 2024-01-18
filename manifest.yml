@@ -1,0 +1,11 @@
+repos:
+- dest: test_house_price_model-data_load
+  url: https://github.com/4-DS/test_house_price_model-data_load.git
+- dest: test_house_price_model-data_prep
+  url: https://github.com/4-DS/test_house_price_model-data_prep.git
+- dest: test_house_price_model-model_train
+  url: https://github.com/4-DS/test_house_price_model-model_train.git
+- dest: test_house_price_model-model_eval
+  url: https://github.com/4-DS/test_house_price_model-model_eval.git
+- dest: test_house_price_model-model_test
+  url: https://github.com/4-DS/test_house_price_model-model_test.git

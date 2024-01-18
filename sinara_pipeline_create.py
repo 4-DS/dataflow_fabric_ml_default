@@ -63,27 +63,36 @@ if save_git_creds == "y":
 with open('pipeline_manifest.yaml') as f:
     p_manifest_dict = yaml.safe_load(f)
 
+tsrc_manifest = {"repos": []}
 for step in p_manifest_dict["steps"]:
     step_name = step["step_name"]
     step_repo_name = f"{pipeline_name}-{step_name}" 
     step_repo_path = pipeline_folder + "/" + step_repo_name + "/"
+    
+    # TODO: consider choosing a needed Git provider
+    step_repo_git = f"https://github.com/{github_org_name}/{step_repo_name}.git"
+    
+    tsrc_manifest_repo = {
+        "dest": step_repo_name,
+        "url": step_repo_git
+    }
+    
+    tsrc_manifest["repos"].append(tsrc_manifest_repo)
     
     # create GitHub repo for a step
     response = create_github_repo(org_name=github_org_name, token=github_token, repo_name=step_repo_name, repo_description='This is your ' + step_name + ' step in pipeline ' + pipeline_name, is_private=True)
    
     print(response.raise_for_status())
     
-    # TODO: consider choosing a needed Git provider
     run_result = run(f'cd {pipeline_folder} &&  \
-                    git clone --recurse-submodules {SNR_STEP_TEMPLATE} {step_repo_name} && \
-                    cd {step_repo_name} && \
-                    git config user.email "{git_useremail}" && \
-                    git config user.name "{git_username}" && \
-                    git remote set-url origin https://github.com/{github_org_name}/{step_repo_name}.git', 
+                       git clone --recurse-submodules {SNR_STEP_TEMPLATE} {step_repo_name} && \
+                       cd {step_repo_name} && \
+                       git config user.email "{git_useremail}" && \
+                       git config user.name "{git_username}"', 
                      shell=True, stderr=STDOUT, cwd=None)
 
     if run_result.returncode !=0 :
-        raise Exception(f'Could not create GitHub repo!')
+        raise Exception(f'Could not prepare a repository for SinaraML step with the name {step_repo_name}!')
         
     substep_params = []
     for substep in step["substeps"]:
@@ -141,11 +150,15 @@ for step in p_manifest_dict["steps"]:
         
 
     run_result = run(f'cd {step_repo_path} && \
-                    git add -A &&  \
-                    git commit -m "Set step and pipeline parameters" && \
-                    git reset $(git commit-tree HEAD^{{tree}} -m "a new SinaraML step") && \
-                    git push', 
+                       git remote set-url origin {step_repo_git} && \
+                       git add -A &&  \
+                       git commit -m "Set step parameters" && \
+                       git reset $(git commit-tree HEAD^{{tree}} -m "a new SinaraML step") && \
+                       git push', 
                      shell=True, stderr=STDOUT, cwd=None)
 
     if run_result.returncode !=0 :
-        raise Exception(f'Could not create SinaraML step repo!')
+        raise Exception(f'Could not create a repository for SinaraML step with the name {step_repo_name}!')
+
+with open('manifest.yml', 'w') as f:
+    yaml.dump(tsrc_manifest, f, default_flow_style=False)
