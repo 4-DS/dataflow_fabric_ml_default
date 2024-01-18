@@ -25,23 +25,17 @@ def change_substep_interface(step_template_nb_name, new_substep_interface):
     # locate substep interface 
     for cell in input_nb_dict["cells"]:
         cell_source = cell["source"]
-        for cell_source_line in cell_source:
-            if "substep.interface" in cell_source_line:
-                #pp.pprint(cell_source)
-                #print(''.join(cell_source))
-                df = pd.DataFrame({'source':[''.join(cell_source)]})
-                df['Values'] = df['source'].str.replace(r'substep.interface\(([^()]+)\)', new_substep_interface)
-                #print( df['Values'])
-                print(''.join(df['Values']))
-                cell_source_split = df['Values'].to_numpy()[0].split('\n')
-                cell["source"] = [substr + '\n' for substr in cell_source_split[:-1]] + [cell_source_split[-1]]
-    pp.pprint(input_nb_dict)
+        if 'interface' in cell["metadata"].get("tags", []):
+            #pp.pprint(cell_source)
+            #print(''.join(cell_source))
+            df = pd.DataFrame({'source':[''.join(cell_source)]})
+            df['Values'] = df['source'].str.replace(r'substep.interface\(([^()]+)\)', new_substep_interface)
+            #print( df['Values'])
+            print(''.join(df['Values']))
+            cell_source_split = df['Values'].to_numpy()[0].split('\n')
+            cell["source"] = [substr + '\n' for substr in cell_source_split[:-1]] + [cell_source_split[-1]]
+    #pp.pprint(input_nb_dict)
     return input_nb_dict
-
-# TODO
-# amend do_step.ipynb right in step repo
-
-# Define pipeline name based on DataFlow Designer repo name
 
 GIT_CRED_STORE_TIMEOUT=3600
 
@@ -68,32 +62,42 @@ if save_git_creds == "y":
 
 with open('pipeline_manifest.yaml') as f:
     p_manifest_dict = yaml.safe_load(f)
-    
-#pp.pprint(p_manifest_dict)
 
 for step in p_manifest_dict["steps"]:
     step_name = step["step_name"]
-    step_repo = f"{pipeline_name}-{step_name}"
+    step_repo_name = f"{pipeline_name}-{step_name}" 
+    step_repo_path = pipeline_folder + "/" + step_repo_name + "/"
     
     # create GitHub repo for a step
-    response = create_github_repo(org_name=github_org_name, token=github_token, repo_name=step_repo, repo_description='This is your ' + step_name + ' step in pipeline ' + pipeline_name, is_private=True)
+    response = create_github_repo(org_name=github_org_name, token=github_token, repo_name=step_repo_name, repo_description='This is your ' + step_name + ' step in pipeline ' + pipeline_name, is_private=True)
    
-    print(response)
+    print(response.raise_for_status())
     
     # TODO: consider choosing a needed Git provider
     run_result = run(f'cd {pipeline_folder} &&  \
-                    git clone --recurse-submodules {SNR_STEP_TEMPLATE} {step_repo} && \
-                    cd {step_repo} && \
+                    git clone --recurse-submodules {SNR_STEP_TEMPLATE} {step_repo_name} && \
+                    cd {step_repo_name} && \
                     git config user.email "{git_useremail}" && \
                     git config user.name "{git_username}" && \
-                    git remote set-url origin https://github.com/{github_org_name}/{step_repo}.git', 
+                    git remote set-url origin https://github.com/{github_org_name}/{step_repo_name}.git', 
                      shell=True, stderr=STDOUT, cwd=None)
 
     if run_result.returncode !=0 :
         raise Exception(f'Could not create GitHub repo!')
-    
+        
+    substep_params = []
     for substep in step["substeps"]:
         substep_name = substep["substep_name"]
+        substep_param = {
+            "substep_name":f"{substep_name}.ipynb",
+            "substep_params":
+            {
+                "param1":"None1",
+                "param2":"None2"
+            }
+        }
+        substep_params.append(substep_param)
+            
         step_inputs = []
         step_outputs = []
         for step_input in substep["inputs"]:
@@ -116,18 +120,27 @@ for step in p_manifest_dict["steps"]:
     )""".format(step_inputs=''.join(['            ' + step_input + '\n' for step_input in step_inputs]), step_outputs=''.join(['            ' + step_output + '\n' for step_output in step_outputs]))
         #print(new_substep_interface)
 
-        step_template_nb_name = pipeline_folder + "/" + step_repo + "/" + SNR_STEP_TEMPLATE_SUBSTEP
+        step_template_nb_name = step_repo_path + "/" + SNR_STEP_TEMPLATE_SUBSTEP
         output_nb_dict = change_substep_interface(step_template_nb_name, new_substep_interface)
         
-        step_nb_name = pipeline_folder + "/" + step_repo + "/" + substep_name + ".ipynb"
+        step_nb_name = step_repo_path + "/" + substep_name + ".ipynb"
 
         nbformat.write(nbformat.from_dict(output_nb_dict), step_nb_name, 4)
         
         Path(step_template_nb_name).unlink()
-    
+        
+    with open(f"{step_repo_path}/params/step_params.json", 'r+', encoding='utf-8') as f:
+        step_params = json.load(f)
 
-    run_result = run(f'cd {step_repo} && \
-                    sed -i "s/\"pipeline\"/\"{pipeline_name}\"/g" ./params/step_params.json && \
+        step_params["pipeline_params"]['pipeline_name'] = pipeline_name
+        step_params["substeps_params"] = substep_params
+        f.seek(0)
+
+        json.dump(step_params, f, indent=4)
+        f.truncate()
+        
+
+    run_result = run(f'cd {step_repo_path} && \
                     git add -A &&  \
                     git commit -m "Set step and pipeline parameters" && \
                     git reset $(git commit-tree HEAD^{{tree}} -m "a new SinaraML step") && \
