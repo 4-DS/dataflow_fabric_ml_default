@@ -1,0 +1,52 @@
+steps:
+- step_name: data_load
+  substeps:
+  - substep_name: load_data
+    inputs: []
+    outputs:
+    - entity_name: "boston_dataset"
+- step_name: data_prep
+  substeps:
+  - substep_name: prepare_data
+    inputs:
+    - step_name: data_prep
+      entity_name: "boston_dataset"
+    outputs:
+    - entity_name: "df_X_train"
+    - entity_name: "df_Y_train"
+    - entity_name: "df_X_eval"
+    - entity_name: "df_Y_eval"
+    - entity_name: "df_X_test"
+    - entity_name: "df_Y_test"
+- step_name: model_train
+  substeps:
+  - substep_name: train
+    inputs:
+    - step_name: data_prep
+      entity_name: "df_X_train"
+    - step_name: data_prep
+      entity_name: "df_Y_train"
+    - step_name: data_prep
+      entity_name: "df_X_eval"
+    - step_name: data_prep
+      entity_name: "df_Y_eval"
+    - step_name: data_prep
+      entity_name: "df_X_test"
+    - step_name: data_prep
+      entity_name: "df_Y_test"
+    outputs:
+    - entity_name: "bento_service"
+- step_name: model_eval
+  substeps:
+  - substep_name: eval
+    inputs:
+    - step_name: model_train
+      entity_name: "bento_service"
+    outputs: []
+- step_name: model_test
+  substeps:
+  - substep_name: test
+    inputs:
+    - step_name: model_train
+      entity_name: "bento_service"
+    outputs: []

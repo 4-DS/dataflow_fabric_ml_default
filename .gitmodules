@@ -1,0 +1,3 @@
+[submodule "dataflow_designer_lib"]
+	path = dataflow_designer_lib
+	url = https://github.com/4-DS/dataflow_designer_lib.git
