@@ -74,7 +74,8 @@ for step in p_manifest_dict["steps"]:
     
     tsrc_manifest_repo = {
         "dest": step_repo_name,
-        "url": step_repo_git
+        "url": step_repo_git,
+        "branch": "main"
     }
     
     tsrc_manifest["repos"].append(tsrc_manifest_repo)
