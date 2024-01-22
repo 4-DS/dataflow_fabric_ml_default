@@ -1,16 +1,16 @@
 repos:
 - branch: main
-  dest: test_house_price-data_load
-  url: https://github.com/4-DS/test_house_price-data_load.git
+  dest: my_first_pipeline-data_load
+  url: https://github.com/4-DS/my_first_pipeline-data_load.git
 - branch: main
-  dest: test_house_price-data_prep
-  url: https://github.com/4-DS/test_house_price-data_prep.git
+  dest: my_first_pipeline-data_prep
+  url: https://github.com/4-DS/my_first_pipeline-data_prep.git
 - branch: main
-  dest: test_house_price-model_train
-  url: https://github.com/4-DS/test_house_price-model_train.git
+  dest: my_first_pipeline-model_train
+  url: https://github.com/4-DS/my_first_pipeline-model_train.git
 - branch: main
-  dest: test_house_price-model_eval
-  url: https://github.com/4-DS/test_house_price-model_eval.git
+  dest: my_first_pipeline-model_eval
+  url: https://github.com/4-DS/my_first_pipeline-model_eval.git
 - branch: main
-  dest: test_house_price-model_test
-  url: https://github.com/4-DS/test_house_price-model_test.git
+  dest: my_first_pipeline-model_test
+  url: https://github.com/4-DS/my_first_pipeline-model_test.git

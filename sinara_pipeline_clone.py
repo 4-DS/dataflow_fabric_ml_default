@@ -89,7 +89,7 @@ get_tmp_prepared()
 
 tsrc_manifest_repo_path = str(Path(f"tmp/{pipeline_name}-manifest").resolve())
 
-run_result = run(f'rm -rf .tsrc && \
+run_result = run(f'rm -rf {pipeline_folder}/.tsrc && \
                    rm -rf {tsrc_manifest_repo_path}.git && \
                    rm -rf {tsrc_manifest_repo_path} && \
                    git init --bare {tsrc_manifest_repo_path}.git && \

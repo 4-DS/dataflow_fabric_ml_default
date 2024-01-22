@@ -46,7 +46,7 @@ github_org_name = input(f"Please, enter your {git_provider} organization: ")
 github_token = getpass(f"Please, enter your token for managing {git_provider} repositories: ")
 
 pipeline_name = input("Please, enter your Pipeline name: ")
-pipeline_folder = input(f"Please, enter a folder to save '{pipeline_name}': ") or str(Path.cwd().resolve())
+pipeline_folder = input(f"Please, enter a folder to load '{pipeline_name}': ") or str(Path.cwd().resolve())
 
 git_username = input("Please, enter your Git user name (default=jovyan): ") or "jovyan"
 git_useremail = input("Please, enter your Git user email (default=jovyan@test.ru): ") or "jovyan@test.ru"
