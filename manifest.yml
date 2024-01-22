@@ -1,11 +1,16 @@
 repos:
-- dest: test_house_price_model-data_load
-  url: https://github.com/4-DS/test_house_price_model-data_load.git
-- dest: test_house_price_model-data_prep
-  url: https://github.com/4-DS/test_house_price_model-data_prep.git
-- dest: test_house_price_model-model_train
-  url: https://github.com/4-DS/test_house_price_model-model_train.git
-- dest: test_house_price_model-model_eval
-  url: https://github.com/4-DS/test_house_price_model-model_eval.git
-- dest: test_house_price_model-model_test
-  url: https://github.com/4-DS/test_house_price_model-model_test.git
+- branch: main
+  dest: test_house_price-data_load
+  url: https://github.com/4-DS/test_house_price-data_load.git
+- branch: main
+  dest: test_house_price-data_prep
+  url: https://github.com/4-DS/test_house_price-data_prep.git
+- branch: main
+  dest: test_house_price-model_train
+  url: https://github.com/4-DS/test_house_price-model_train.git
+- branch: main
+  dest: test_house_price-model_eval
+  url: https://github.com/4-DS/test_house_price-model_eval.git
+- branch: main
+  dest: test_house_price-model_test
+  url: https://github.com/4-DS/test_house_price-model_test.git

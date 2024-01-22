@@ -9,33 +9,33 @@ from pathlib import Path
 from subprocess import STDOUT, run, call
 import os
 from getpass import getpass
-import shutil
 
 from dataflow_designer_lib.github import create_github_repo
 from dataflow_designer_lib.env import SNR_STEP_TEMPLATE, SNR_STEP_TEMPLATE_SUBSTEP
 
-def get_sinara_user_work_dir():
-    return os.getenv("JUPYTER_SERVER_ROOT") or '/home/jovyan/work'
-
-def get_tmp_prepared():
-    valid_tmp_target_path = f'/tmp/dataflow_fabric{os.getcwd().replace(get_sinara_user_work_dir(),"")}'
-    os.makedirs(valid_tmp_target_path, exist_ok=True)
-    tmp_path = Path('./tmp')
-    if tmp_path.is_symlink():
-        tmp_link = tmp_path.readlink()
-        if tmp_link.as_posix() != valid_tmp_target_path:
-            print("'tmp' dir is not valid, creating valid tmp dir...")
-            tmp_path.unlink()                
-            os.symlink(valid_tmp_target_path, './tmp', target_is_directory=True)
-    else:
-        if tmp_path.exists():
-            print('\033[1m' + 'Current \'tmp\' folder inside your component is going to be deleted. It\'s safe, as \'tmp\' is moving to cache and will be recreated again.' + '\033[0m')
-            shutil.rmtree(tmp_path)
-
-        os.symlink(valid_tmp_target_path, './tmp', target_is_directory=True)
-
-
 pp = pprint.PrettyPrinter(indent=4)
+
+def change_substep_interface(step_template_nb_name, new_substep_interface):
+    
+    nb_body, inputs = NotebookExporter().from_filename(step_template_nb_name)
+    input_nb_dict = json.loads(nb_body)
+    output_nb_dict = input_nb_dict.copy()
+
+    #pp.pprint(input_nb_dict["cells"])
+    # locate substep interface 
+    for cell in input_nb_dict["cells"]:
+        cell_source = cell["source"]
+        if 'interface' in cell["metadata"].get("tags", []):
+            #pp.pprint(cell_source)
+            #print(''.join(cell_source))
+            df = pd.DataFrame({'source':[''.join(cell_source)]})
+            df['Values'] = df['source'].str.replace(r'substep.interface\(([^()]+)\)', new_substep_interface)
+            #print( df['Values'])
+            print(''.join(df['Values']))
+            cell_source_split = df['Values'].to_numpy()[0].split('\n')
+            cell["source"] = [substr + '\n' for substr in cell_source_split[:-1]] + [cell_source_split[-1]]
+    #pp.pprint(input_nb_dict)
+    return input_nb_dict
 
 GIT_CRED_STORE_TIMEOUT=3600
 
@@ -46,9 +46,7 @@ github_org_name = input(f"Please, enter your {git_provider} organization: ")
 github_token = getpass(f"Please, enter your token for managing {git_provider} repositories: ")
 
 pipeline_name = input("Please, enter your Pipeline name: ")
-pipeline_folder = input(f"Please, enter an existing folder to save '{pipeline_name}' (default=current_dir): ") or str(Path.cwd().resolve())
-
-pipeline_folder = str(Path(pipeline_folder).resolve())
+pipeline_folder = input(f"Please, enter a folder to save '{pipeline_name}': ") or str(Path.cwd().resolve())
 
 git_username = input("Please, enter your Git user name (default=jovyan): ") or "jovyan"
 git_useremail = input("Please, enter your Git user email (default=jovyan@test.ru): ") or "jovyan@test.ru"
@@ -82,25 +80,21 @@ for step in p_manifest_dict["steps"]:
     
     tsrc_manifest["repos"].append(tsrc_manifest_repo)
     
+    # create GitHub repo for a step
+    response = create_github_repo(org_name=github_org_name, token=github_token, repo_name=step_repo_name, repo_description='This is your ' + step_name + ' step in pipeline ' + pipeline_name, is_private=True)
+   
+    print(response.raise_for_status())       
+
+    run_result = run(f'cd {step_repo_path} && \
+                       git remote set-url origin {step_repo_git} && \
+                       git add -A &&  \
+                       git commit -m "Set step parameters" && \
+                       git reset $(git commit-tree HEAD^{{tree}} -m "a new SinaraML step") && \
+                       git push', 
+                     shell=True, stderr=STDOUT, cwd=None)
+
+    if run_result.returncode !=0 :
+        raise Exception(f'Could not create a repository for SinaraML step with the name {step_repo_name}!')
+
 with open('manifest.yml', 'w') as f:
     yaml.dump(tsrc_manifest, f, default_flow_style=False)
-
-get_tmp_prepared()
-
-tsrc_manifest_repo_path = str(Path(f"tmp/{pipeline_name}-manifest").resolve())
-
-run_result = run(f'rm -rf .tsrc && \
-                   rm -rf {tsrc_manifest_repo_path}.git && \
-                   rm -rf {tsrc_manifest_repo_path} && \
-                   git init --bare {tsrc_manifest_repo_path}.git && \
-                   git clone {tsrc_manifest_repo_path}.git {tsrc_manifest_repo_path} && \
-                   cp manifest.yml {tsrc_manifest_repo_path} && \
-                   cd {tsrc_manifest_repo_path} && \
-                   git add -A &&  \
-                   git commit -m "Updated tsrc manifest" && \
-                   git push && \
-                   cd {pipeline_folder} && \
-                   tsrc init {tsrc_manifest_repo_path}.git',
-                 shell=True, stderr=STDOUT, cwd=None)
-if run_result.returncode !=0 :
-    raise Exception(f'Could not clone SinaraML pipeline!')
