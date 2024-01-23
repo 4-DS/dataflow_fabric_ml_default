@@ -112,7 +112,7 @@ for step in p_manifest_dict["steps"]:
             step_outputs.append('{ ENTITY_NAME: "' + step_output.get("entity_name") + '" },')
 
         new_substep_interface = """
-    substep.interface(
+substep.interface(
 
         inputs =
         [
