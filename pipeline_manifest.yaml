@@ -9,7 +9,7 @@ steps:
   substeps:
   - substep_name: prepare_data
     inputs:
-    - step_name: data_prep
+    - step_name: data_load
       entity_name: "boston_dataset"
     outputs:
     - entity_name: "df_X_train"
