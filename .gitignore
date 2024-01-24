@@ -9,3 +9,4 @@ tmp
 **/__pycache__/*
 **/.ipynb_checkpoints/*
 /.tsrc/*
+manifest.yml
