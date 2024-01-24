@@ -29,7 +29,7 @@ def change_substep_interface(step_template_nb_name, new_substep_interface):
             #pp.pprint(cell_source)
             #print(''.join(cell_source))
             df = pd.DataFrame({'source':[''.join(cell_source)]})
-            df['Values'] = df['source'].str.replace(r'substep.interface\(([^()]+)\)', new_substep_interface)
+            df['Values'] = df['source'].str.replace(r'substep.interface\(([^()]+)\)', new_substep_interface, regex=True)
             #print( df['Values'])
             print(''.join(df['Values']))
             cell_source_split = df['Values'].to_numpy()[0].split('\n')
