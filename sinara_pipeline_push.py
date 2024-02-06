@@ -8,8 +8,6 @@ from getpass import getpass
 from dataflow_designer_lib.github import create_github_repo
 from dataflow_designer_lib.step_utils import get_step_folders
 
-GIT_CRED_STORE_TIMEOUT=3600
-
 #TODO: make import of a proper function for creating repo, now only GitHub is chosen
     
 git_provider = input("Please, enter your Git provider among GitHub/Gitlab (default=GitHub): ") or 'GitHub'

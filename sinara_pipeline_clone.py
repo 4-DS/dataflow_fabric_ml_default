@@ -1,9 +1,4 @@
-from nbconvert import NotebookExporter
 import json
-import tempfile
-import nbformat
-import pprint
-import pandas as pd
 import yaml
 from pathlib import Path
 from subprocess import STDOUT, run, call
@@ -11,33 +6,12 @@ import os
 from getpass import getpass
 import shutil
 
-from dataflow_designer_lib.github import create_github_repo
-from dataflow_designer_lib.env import SNR_STEP_TEMPLATE, SNR_STEP_TEMPLATE_SUBSTEP
+import pprint
 
-def get_sinara_user_work_dir():
-    return os.getenv("JUPYTER_SERVER_ROOT") or '/home/jovyan/work'
-
-def get_tmp_prepared():
-    valid_tmp_target_path = f'/tmp/dataflow_fabric{os.getcwd().replace(get_sinara_user_work_dir(),"")}'
-    os.makedirs(valid_tmp_target_path, exist_ok=True)
-    tmp_path = Path('./tmp')
-    if tmp_path.is_symlink():
-        tmp_link = tmp_path.readlink()
-        if tmp_link.as_posix() != valid_tmp_target_path:
-            print("'tmp' dir is not valid, creating valid tmp dir...")
-            tmp_path.unlink()                
-            os.symlink(valid_tmp_target_path, './tmp', target_is_directory=True)
-    else:
-        if tmp_path.exists():
-            print('\033[1m' + 'Current \'tmp\' folder inside your component is going to be deleted. It\'s safe, as \'tmp\' is moving to cache and will be recreated again.' + '\033[0m')
-            shutil.rmtree(tmp_path)
-
-        os.symlink(valid_tmp_target_path, './tmp', target_is_directory=True)
-
+from dataflow_designer_lib.common import get_tmp_prepared 
+from dataflow_designer_lib.github import get_pipeline_steps
 
 pp = pprint.PrettyPrinter(indent=4)
-
-GIT_CRED_STORE_TIMEOUT=3600
 
 #TODO: make import of a proper function for creating repo, now only GitHub is chosen
     
@@ -50,29 +24,25 @@ pipeline_folder = input(f"Please, enter an existing folder to save '{pipeline_na
 
 pipeline_folder = str(Path(pipeline_folder).resolve())
 
-git_username = input("Please, enter your Git user name (default=jovyan): ") or "jovyan"
-git_useremail = input("Please, enter your Git user email (default=jovyan@test.ru): ") or "jovyan@test.ru"
-save_git_creds = input(f"Your pipeline steps will be cloned soon. Would you like to store Git credentials in memory for {GIT_CRED_STORE_TIMEOUT} seconds? WARNING: It may overwrite your stored github credentials. y/n (default=n): ") or "n"
+#git_username = input("Please, enter your Git user name (default=jovyan): ") or "jovyan"
+#git_useremail = input("Please, enter your Git user email (default=jovyan@test.ru): ") or "jovyan@test.ru"
+
+save_git_creds = input(f"Would you like to store Git credentials once? WARNING: Currenly, only plain text is supported. y/n (default=y): ") or "y"
 
 if save_git_creds == "y":
-    run_result = run(f"git config credential.helper 'cache --timeout='{GIT_CRED_STORE_TIMEOUT}'' && \
-                       (echo url=https://github.com; echo username={github_org_name}; echo password={github_token}; echo ) | git credential approve", 
+    run_result = run(f"git config --global credential.helper store && \
+                       (echo url=https://github.com; echo username={github_org_name}; echo password={github_token}; echo ) | git credential approve",
                          shell=True, stderr=STDOUT, cwd=None)
 
     if run_result.returncode !=0 :
-        raise Exception(f'Could not store Git credentials in memory!')
+        raise Exception(f'Could not store Git credentials!')
 
-with open('pipeline_manifest.yaml') as f:
-    p_manifest_dict = yaml.safe_load(f)
+step_list = get_pipeline_steps(org_name=github_org_name, token=github_token, pipeline_name=pipeline_name)
 
 tsrc_manifest = {"repos": []}
-for step in p_manifest_dict["steps"]:
-    step_name = step["step_name"]
-    step_repo_name = f"{pipeline_name}-{step_name}" 
-    step_repo_path = pipeline_folder + "/" + step_repo_name + "/"
-    
-    # TODO: consider choosing a needed Git provider
-    step_repo_git = f"https://github.com/{github_org_name}/{step_repo_name}.git"
+for step in step_list:
+    step_repo_name = step["step_repo_name"]    
+    step_repo_git = step["step_repo_git"]
     
     tsrc_manifest_repo = {
         "dest": step_repo_name,
@@ -103,4 +73,4 @@ run_result = run(f'rm -rf {pipeline_folder}/.tsrc && \
                    tsrc init {tsrc_manifest_repo_path}.git',
                  shell=True, stderr=STDOUT, cwd=None)
 if run_result.returncode !=0 :
-    raise Exception(f'Could not clone SinaraML pipeline!')
+    raise Exception(f'Could not clone SinaraML pipeline with the name {pipeline_name}!')

@@ -1,16 +1,4 @@
 repos:
 - branch: main
-  dest: my_first_pipeline-data_load
-  url: https://github.com/4-DS/my_first_pipeline-data_load.git
-- branch: main
-  dest: my_first_pipeline-data_prep
-  url: https://github.com/4-DS/my_first_pipeline-data_prep.git
-- branch: main
-  dest: my_first_pipeline-model_train
-  url: https://github.com/4-DS/my_first_pipeline-model_train.git
-- branch: main
-  dest: my_first_pipeline-model_eval
-  url: https://github.com/4-DS/my_first_pipeline-model_eval.git
-- branch: main
-  dest: my_first_pipeline-model_test
-  url: https://github.com/4-DS/my_first_pipeline-model_test.git
+  dest: test2-data_load
+  url: https://github.com/4-DS/test2-data_load
