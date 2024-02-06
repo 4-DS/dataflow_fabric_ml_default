@@ -8,9 +8,21 @@ import sys
 
 from dataflow_designer_lib.github import create_github_repo
 from dataflow_designer_lib.step_utils import create_step
- 
-SNR_STEP_TEMPLATE = sys.argv[1] 
-SNR_STEP_TEMPLATE_SUBSTEP = sys.argv[2] 
+
+from argparse import ArgumentParser
+
+arg_parser = ArgumentParser()
+
+arg_parser.add_argument("--step_template_git", help="step template git url")
+arg_parser.add_argument("--step_template_nb_substep", help="the main notebook in step template")
+arg_parser.add_argument("--current_dir", help="current directory")
+
+args = arg_parser.parse_args()
+#print(args)
+
+SNR_STEP_TEMPLATE = args.step_template_git
+SNR_STEP_TEMPLATE_SUBSTEP = args.step_template_nb_substep
+CURRENT_DIR = args.current_dir
 
 #TODO: make import of a proper function for creating repo, now only GitHub is chosen
     
@@ -19,7 +31,7 @@ SNR_STEP_TEMPLATE_SUBSTEP = sys.argv[2]
 #github_token = getpass(f"Please, enter your token for managing {git_provider} repositories: ")
 
 pipeline_name = input("Please, enter your Pipeline name: ")
-pipeline_folder = input(f"Please, enter a folder to save '{pipeline_name}': ") or str(Path.cwd().resolve())
+pipeline_folder = input(f"Please, enter a folder to save '{pipeline_name}': ") or str(Path(CURRENT_DIR).resolve())
 
 git_username = input("Please, enter your Git user name (default=jovyan): ") or "jovyan"
 git_useremail = input("Please, enter your Git user email (default=jovyan@test.ru): ") or "jovyan@test.ru"

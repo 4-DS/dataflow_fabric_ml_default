@@ -8,6 +8,21 @@ from getpass import getpass
 from dataflow_designer_lib.github import create_github_repo
 from dataflow_designer_lib.step_utils import get_step_folders
 
+from argparse import ArgumentParser
+
+arg_parser = ArgumentParser()
+
+arg_parser.add_argument("--step_template_git", help="step template git url")
+arg_parser.add_argument("--step_template_nb_substep", help="the main notebook in step template")
+arg_parser.add_argument("--current_dir", help="current directory")
+
+args = arg_parser.parse_args()
+#print(args)
+
+SNR_STEP_TEMPLATE = args.step_template_git
+SNR_STEP_TEMPLATE_SUBSTEP = args.step_template_nb_substep
+CURRENT_DIR = args.current_dir
+
 #TODO: make import of a proper function for creating repo, now only GitHub is chosen
     
 git_provider = input("Please, enter your Git provider among GitHub/Gitlab (default=GitHub): ") or 'GitHub'
@@ -16,7 +31,7 @@ github_token = getpass(f"Please, enter your token for managing {git_provider} re
 
 pipeline_name = input("Please, enter your Pipeline name: ")
         
-steps_folder_glob = input(f"Please, enter a glob to load '{pipeline_name}' like /some_path/steps_folder/*. (default=./*): ") or "./*"
+steps_folder_glob = input(f"Please, enter a glob to load '{pipeline_name}' like /some_path/steps_folder/*. (default=./*): ") or f"{Path(CURRENT_DIR).resolve()}/*"
 
 save_git_creds = input(f"Would you like to store Git credentials once? WARNING: Currenly, only plain text is supported. y/n (default=y): ") or "y"
 

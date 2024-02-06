@@ -11,6 +11,21 @@ import pprint
 from dataflow_designer_lib.common import get_tmp_prepared 
 from dataflow_designer_lib.github import get_pipeline_steps
 
+from argparse import ArgumentParser
+
+arg_parser = ArgumentParser()
+
+arg_parser.add_argument("--step_template_git", help="step template git url")
+arg_parser.add_argument("--step_template_nb_substep", help="the main notebook in step template")
+arg_parser.add_argument("--current_dir", help="current directory")
+
+args = arg_parser.parse_args()
+#print(args)
+
+SNR_STEP_TEMPLATE = args.step_template_git
+SNR_STEP_TEMPLATE_SUBSTEP = args.step_template_nb_substep
+CURRENT_DIR = args.current_dir
+
 pp = pprint.PrettyPrinter(indent=4)
 
 #TODO: make import of a proper function for creating repo, now only GitHub is chosen
@@ -20,9 +35,7 @@ github_org_name = input(f"Please, enter your {git_provider} organization: ")
 github_token = getpass(f"Please, enter your token for managing {git_provider} repositories: ")
 
 pipeline_name = input("Please, enter your Pipeline name: ")
-pipeline_folder = input(f"Please, enter an existing folder to save '{pipeline_name}' (default=current_dir): ") or str(Path.cwd().resolve())
-
-pipeline_folder = str(Path(pipeline_folder).resolve())
+pipeline_folder = input(f"Please, enter an existing folder to save '{pipeline_name}' (default=current_dir): ") or str(Path(CURRENT_DIR).resolve())
 
 #git_username = input("Please, enter your Git user name (default=jovyan): ") or "jovyan"
 #git_useremail = input("Please, enter your Git user email (default=jovyan@test.ru): ") or "jovyan@test.ru"
@@ -66,6 +79,8 @@ run_result = run(f'rm -rf {pipeline_folder}/.tsrc && \
                    git clone {tsrc_manifest_repo_path}.git {tsrc_manifest_repo_path} && \
                    cp manifest.yml {tsrc_manifest_repo_path} && \
                    cd {tsrc_manifest_repo_path} && \
+                   git config user.email jovyan@test.ru && \
+                   git config user.name jovyan && \
                    git add -A &&  \
                    git commit -m "Updated tsrc manifest" && \
                    git push && \
