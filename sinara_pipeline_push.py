@@ -60,7 +60,7 @@ for step_folder in step_folders:
        
         #print(response.raise_for_status())       
         run_result = run (f'git remote set-url origin {step_repo_git} && \
-                            git push',
+                            git push -f',
                            shell=True, stderr=STDOUT, cwd=step_repo_path, executable="/bin/bash")
         if run_result.returncode !=0 :
             raise Exception(f'Could not create a repository for SinaraML step with the name {step_repo_name}!')
