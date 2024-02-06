@@ -31,7 +31,7 @@ github_token = getpass(f"Please, enter your token for managing {git_provider} re
 
 pipeline_name = input("Please, enter your Pipeline name: ")
         
-steps_folder_glob = input(f"Please, enter a glob to load '{pipeline_name}' like /some_path/steps_folder/*. (default=./*): ") or f"{Path(CURRENT_DIR).resolve()}/*"
+steps_folder_glob = input(f"Please, enter a glob to load '{pipeline_name}' like /some_path/steps_folder/*. (default=./pipeline_name-*): ") or f"{Path(CURRENT_DIR).resolve()}/{pipeline_name}-*"
 
 save_git_creds = input(f"Would you like to store Git credentials once? WARNING: Currenly, only plain text is supported. y/n (default=y): ") or "y"
 
