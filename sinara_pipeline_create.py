@@ -1,3 +1,4 @@
 from dataflow_designer_lib.pipeline_provider import SinaraPipelineProvider
 
-SinaraPipelineProvider.create_pipeline('pipeline_manifest.yaml')
+pipeline_provider = SinaraPipelineProvider()
+pipeline_provider.create_pipeline('pipeline_manifest.yaml')

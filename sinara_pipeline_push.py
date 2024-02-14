@@ -1,3 +1,4 @@
 from dataflow_designer_lib.pipeline_provider import SinaraPipelineProvider
 
-SinaraPipelineProvider.push_pipeline()
+pipeline_provider = SinaraPipelineProvider()
+pipeline_provider.push_pipeline()
