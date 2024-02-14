@@ -1,4 +1,0 @@
-repos:
-- branch: main
-  dest: test2-data_load
-  url: https://github.com/4-DS/test2-data_load
