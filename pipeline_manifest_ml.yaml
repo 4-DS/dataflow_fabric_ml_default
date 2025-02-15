@@ -1,0 +1,53 @@
+steps:
+- step_name: data_load
+  substeps:
+  - substep_name: load_data
+    inputs: []
+    #ТУТ ДОБАВИТЬ КАСТОМНЫЕ ИНПУТЫ С URL: "url to data uploaded by data collection module"
+    outputs:
+    - entity_name: "dataset_name_parquet_data"
+- step_name: data_prep
+  substeps:
+  - substep_name: prepare_data
+    inputs:
+    - step_name: data_load
+      entity_name: "dataset_name_parquet_data"
+    outputs:
+    - entity_name: "dataset_name_X_train"
+    - entity_name: "dataset_name_Y_train"
+    - entity_name: "dataset_name_X_val"
+    - entity_name: "dataset_name_Y_val"
+    - entity_name: "dataset_name_X_test"
+    - entity_name: "dataset_name_Y_test"
+- step_name: model_train
+  substeps:
+  - substep_name: train
+    inputs:
+    - step_name: data_prep
+      entity_name: "dataset_name_X_train"
+    - step_name: data_prep
+      entity_name: "dataset_name_Y_train"
+    - step_name: data_prep
+      entity_name: "dataset_name_X_val"
+    - step_name: data_prep
+      entity_name: "dataset_name_Y_val"
+    outputs:
+    - entity_name: "bento_service"
+- step_name: model_eval
+  substeps:
+  - substep_name: eval
+    inputs:
+    - step_name: model_train
+      entity_name: "bento_service"
+    - step_name: data_prep
+      entity_name: "dataset_name_X_test"
+    - step_name: data_prep
+      entity_name: "dataset_name_Y_test"
+    outputs: []
+- step_name: model_test
+  substeps:
+  - substep_name: test
+    inputs:
+    - step_name: model_train
+      entity_name: "bento_service"
+    outputs: []
