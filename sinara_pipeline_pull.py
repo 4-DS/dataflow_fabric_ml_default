@@ -10,6 +10,7 @@ arg_parser.add_argument("--git_password")
 arg_parser.add_argument("--git_provider")
 arg_parser.add_argument("--git_provider_api")
 arg_parser.add_argument("--git_provider_url")
+arg_parser.add_argument("--git_auth_method")
 
 args = arg_parser.parse_args()
 
@@ -21,6 +22,7 @@ try:
                                     git_provider_url = args.git_provider_url,
                                     git_provider_api = args.git_provider_api,
                                     git_default_branch = 'main',
-                                    git_username = args.git_username, git_password = args.git_password)
+                                    git_username = args.git_username, git_password = args.git_password,
+                                    git_auth_method = args.git_auth_method)
 except PipelineProviderException as e:
     print(e)
